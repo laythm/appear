@@ -1,0 +1,89 @@
+<html>
+<head>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.1.1.min.js"></script>
+    <script src="appear.js"></script>
+</head>
+<body >
+
+
+    <div id="maindiv" style="height:500px;overflow:auto;border:1px solid red;">
+        <div style="height:2000px;border:5px solid yellow;">
+            <div id="asd" style="height:100px;border:5px solid yellow;"></div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function () {
+            $("#asd").appear({
+                parentElement: "#maindiv",
+                shownCallback: function () {
+                    console.log('show');
+                    $("#asd").html($("#asd").html() + "shown<br/>");
+                },
+                hiddenCallback: function () {
+                    console.log('hide');
+                    $("#asd").html($("#asd").html() + "hiden<br/>")
+                }
+            });
+
+        });
+
+
+        (function ($) {
+            $.fn.appear = function (options) {
+
+                var defaults = {
+                    parentElement: window,
+                    shownCallback: function () { },
+                    hiddenCallback: function () { }
+                };
+
+                var settings = $.extend({}, defaults, options);
+
+                function isScrolledTo(el, parentElement) {
+                    var viewTop = $(parentElement).scrollTop();
+                    var viewBottom = viewTop + $(parentElement).height();
+
+                    var elemTop = $(el).offset().top;
+                    var elemBottom = elemTop + $(el).height();
+                    return ((elemBottom >= viewTop) && (elemTop <= viewBottom));
+                }
+
+                function onScrolledTo(el, parentElement, shownCallback, hiddenCallback) {
+                    var isVisible = false;
+
+                    $(parentElement).scroll(function () {
+                        if ($(el).is(':visible')) {
+                            if (isScrolledTo(el, parentElement)) {
+                                if (!isVisible) {
+                                    isVisible = true;
+                                    if (shownCallback) (shownCallback());
+                                }
+                            } else {
+                                if (isVisible) {
+                                    isVisible = false;
+                                    if (hiddenCallback) (hiddenCallback());
+                                }
+                            }
+                        }
+                    }).scroll();
+                }
+                return this.each(function () {
+                    el = this;
+                    //assign scroll event on parent elment to check if scroll will show the element then
+                    onScrolledTo(el, settings.parentElement, settings.shownCallback, settings.hiddenCallback);
+
+                    //if the element is shown and scrolled to then showncall back
+                    $(el).bind('show', function () {
+                        if (isScrolledTo(el, settings.parentElement)) {
+                            if (settings.shownCallback) (settings.shownCallback());
+                        }
+                    });
+                });
+            };
+
+        }(jQuery));
+    </script>
+</body>
+</html>
